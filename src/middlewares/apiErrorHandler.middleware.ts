@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { ERROR_CODES } from '@/constant/error.codes';
-import { STATUS_CODES } from '@/constant/status.codes';
-import { ApiError } from '@/error/ApiError';
-import { apiErrorFormat } from '@/error/apiErrorFormat';
-import logger from '@/logger/winston.logger';
+import { ERROR_CODES } from '@/constants/error-codes.constant';
+import { STATUS_CODES } from '@/constants/statuscodes.constant';
+import { ApiError } from '@/errors/ApiError.error';
+import { apiErrorFormat } from '@/errors/apiErrorFormat.error';
+import logger from '@/loggers/winston.logger';
 
 export function apiErrorHandler(err: ApiError, req: Request, res: Response, next: NextFunction) {
     const t = req.t;

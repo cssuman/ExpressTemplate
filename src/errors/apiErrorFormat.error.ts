@@ -1,8 +1,8 @@
 import { Request } from 'express';
 import { v4 } from 'uuid';
 
-import { env } from '@/config/env';
-import { ApiError } from '@/error/ApiError';
+import { env } from '@/configs/env.config';
+import { ApiError } from '@/errors/ApiError.error';
 
 /**
  *

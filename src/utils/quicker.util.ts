@@ -1,6 +1,6 @@
 import os from 'os';
 
-import { env } from '@/config/env';
+import { env } from '@/configs/env.config';
 
 export default {
     getSystemHealth: () => {

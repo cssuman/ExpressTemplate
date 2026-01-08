@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 
-import { env } from '@/config/env';
-import { ERROR_CODES } from '@/constant/error.codes';
-import { STATUS_CODES } from '@/constant/status.codes';
-import { ApiError } from '@/error/ApiError';
-import asyncCatch from '@/error/asyncCatch';
-import { customSuccessResponse } from '@/utils/customSuccessResponse';
+import { env } from '@/configs/env.config';
+import { ERROR_CODES } from '@/constants/error-codes.constant';
+import { STATUS_CODES } from '@/constants/statuscodes.constant';
+import { ApiError } from '@/errors/ApiError.error';
+import asyncCatch from '@/errors/asyncCatch.error';
+import { customSuccessResponse } from '@/utils/custom-success-response.util';
 
 import packageJson from '../../package.json';
 

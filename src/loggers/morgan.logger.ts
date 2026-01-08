@@ -1,7 +1,7 @@
 import morgan from 'morgan';
 
-import { env } from '@/config/env';
-import logger from '@/logger/winston.logger';
+import { env } from '@/configs/env.config';
+import logger from '@/loggers/winston.logger';
 
 /**
  * Custom stream configuration for Morgan.

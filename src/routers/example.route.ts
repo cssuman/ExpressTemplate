@@ -1,11 +1,18 @@
 import { Router } from 'express';
 
-import { exampleLocalization, exampleMetrics, exampleVerifyApiKey, fileUploadExample, sendEmailExample, slowDownExample } from '@/controller/example';
-import upload from '@/middleware/multer';
-import validateSchema from '@/middleware/schema.validation';
-import { slowDownApi } from '@/middleware/slow-down';
-import { verifyApiKey } from '@/middleware/verifyApiKey';
-import { metricsSchema, sendEmailSchema } from '@/schema/example.schema';
+import {
+    exampleLocalization,
+    exampleMetrics,
+    exampleVerifyApiKey,
+    fileUploadExample,
+    sendEmailExample,
+    slowDownExample,
+} from '@/controllers/example.controller';
+import upload from '@/middlewares/multer.middleware';
+import validateSchema from '@/middlewares/schema-validation.middleware';
+import { slowDownApi } from '@/middlewares/slow-down.middleware';
+import { verifyApiKey } from '@/middlewares/verify-apiKey.middleware';
+import { metricsSchema, sendEmailSchema } from '@/schemas/example.schema';
 
 const exampleRouter = Router();
 

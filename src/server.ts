@@ -1,7 +1,7 @@
 import app from '@/app';
-import { env } from '@/config/env';
-import logger from '@/logger/winston.logger';
-import { getLocalIp } from '@/utils/getLocalIp';
+import { env } from '@/configs/env.config';
+import logger from '@/loggers/winston.logger';
+import { getLocalIp } from '@/utils/get-localIp.util';
 
 const startServer = () => {
     try {

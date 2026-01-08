@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 
-import { ERROR_CODES } from '@/constant/error.codes';
-import { STATUS_CODES } from '@/constant/status.codes';
-import { sendEmail } from '@/email/sendgrid';
-import { ApiError } from '@/error/ApiError';
-import asyncCatch from '@/error/asyncCatch';
-import { DELAY_AFTER_REQUEST_COUNT, DELAY_AFTER_REQUEST_COUNT_EXCIDED_IN_MS, WINDOW_IN_MILI_SECONDS } from '@/middleware/slow-down';
-import { metricsType, sendEmailType } from '@/schema/example.schema';
+import { ERROR_CODES } from '@/constants/error-codes.constant';
+import { STATUS_CODES } from '@/constants/statuscodes.constant';
+import { ApiError } from '@/errors/ApiError.error';
+import asyncCatch from '@/errors/asyncCatch.error';
+import { sendEmail } from '@/mails/sendgrid.mail';
+import { DELAY_AFTER_REQUEST_COUNT, DELAY_AFTER_REQUEST_COUNT_EXCIDED_IN_MS, WINDOW_IN_MILI_SECONDS } from '@/middlewares/slow-down.middleware';
+import { metricsType, sendEmailType } from '@/schemas/example.schema';
 import { RequestWithRateLimit } from '@/types/types.d';
-import { customSuccessResponse } from '@/utils/customSuccessResponse';
+import { customSuccessResponse } from '@/utils/custom-success-response.util';
 
 export const slowDownExample = asyncCatch(async (req: RequestWithRateLimit, res: Response) => {
     const t = req.t;
