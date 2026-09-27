@@ -137,7 +137,7 @@ Please read [docs/16-coding-standards.md](docs/16-coding-standards.md) first.
 ## Contact
 
 - **Email:** [cs.sumansrm@gmail.com](mailto:cs.sumansrm@gmail.com)
-- **Website:** [sumansharma.name.com](https://sumansharma.name.com)
+- **Website:** [sumansharma.name.np](https://sumansharma.name.np)
 - **LinkedIn:** [cssuman](https://www.linkedin.com/in/cssuman/)
 
 ## License
