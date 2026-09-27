@@ -283,6 +283,19 @@ npm run prepare     # reinstall husky hooks
 
 Hooks live in `.git/hooks`, which is not cloned.
 
+If that command appears to do nothing, it skipped deliberately. `prepare` runs
+on every install — including inside a Docker image, where husky is not present
+and there is no repository — so it is a no-op when any of these hold:
+
+| Condition                    | Why it skips                        |
+| ---------------------------- | ----------------------------------- |
+| `HUSKY=0`                    | The documented opt-out              |
+| `CI=true`                    | Nothing commits from a CI runner    |
+| `node_modules/husky` missing | A production install (`--omit=dev`) |
+| No `.git` directory          | Nothing to attach hooks to          |
+
+Check with `HUSKY= CI= npm run prepare` if you expected hooks and got none.
+
 ### Prettier and ESLint disagree
 
 They should not — `eslint-config-prettier` is last in the config and disables
