@@ -42,7 +42,10 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-RUN npm install --global pm2@latest
+# Pinned to match the pm2 devDependency: `latest` would let two builds of the
+# same commit ship different majors, in an image whose comments above argue for
+# reproducibility.
+RUN npm install --global pm2@7.0.4
 
 COPY package*.json ./
 COPY scripts ./scripts

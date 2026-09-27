@@ -29,6 +29,17 @@ const openApiRouter = Router();
 const SCALAR_VERSION = '1.72.1';
 const SCALAR_BUNDLE = `https://cdn.jsdelivr.net/npm/@scalar/api-reference@${SCALAR_VERSION}/dist/browser/standalone.min.js`;
 
+/**
+ * Subresource Integrity for that bundle. Pinning the version alone does not
+ * protect against a compromised or substituted CDN artifact, and this is the
+ * page where a reader pastes their API key into the "Try it" console. The
+ * browser refuses to execute the script if the hash does not match.
+ *
+ * Regenerate whenever SCALAR_VERSION changes:
+ *   curl -sL <bundle url> | openssl dgst -sha384 -binary | openssl base64 -A
+ */
+const SCALAR_INTEGRITY = 'sha384-JezfTaoGe2t8F2YRYUQosjM0S21blpE8j3yOUgTEiTKCyLWx9K4lfwjKPd8Dp7WY';
+
 const configuration = {
     /** Where the UI fetches the specification from. */
     url: '/docs/openapi.json',
@@ -74,7 +85,11 @@ const referencePage = (): string => `<!doctype html>
     </head>
     <body>
         <script id="api-reference" data-configuration="${escapeAttribute(JSON.stringify(configuration))}"></script>
-        <script src="${SCALAR_BUNDLE}" crossorigin="anonymous"></script>
+        <script
+            src="${SCALAR_BUNDLE}"
+            integrity="${SCALAR_INTEGRITY}"
+            crossorigin="anonymous"
+        ></script>
         <noscript>
             This reference needs JavaScript. The specification itself is at
             <a href="/docs/openapi.json">/docs/openapi.json</a>.

@@ -24,7 +24,6 @@ flowchart LR
     C["winston"] --> D["console<br/>coloured in dev, JSON in prod"]
     C --> E["logs/error.log<br/>error only"]
     C --> F["logs/info.log<br/>info and above"]
-    C --> G["logs/exceptions.log<br/>logs/rejections.log"]
 ```
 
 ## Levels
@@ -116,12 +115,28 @@ error log entry, and the `errorId` the client was shown.
 
 ## Files and rotation
 
-| File                  | Contents                                                |
-| --------------------- | ------------------------------------------------------- |
-| `logs/error.log`      | Errors only — the first file to open during an incident |
-| `logs/info.log`       | Everything at `info` and above                          |
-| `logs/exceptions.log` | Uncaught exceptions                                     |
-| `logs/rejections.log` | Unhandled promise rejections                            |
+| File             | Contents                                                |
+| ---------------- | ------------------------------------------------------- |
+| `logs/error.log` | Errors only — the first file to open during an incident |
+| `logs/info.log`  | Everything at `info` and above                          |
+
+Under PM2 cluster mode each worker writes its own set — `error-0.log`,
+`error-1.log` and so on, from `NODE_APP_INSTANCE`. Rotation works by renaming
+files, so workers sharing one `error.log` would rename each other's files out
+from under themselves and lose lines.
+
+### Crashes are not written to a file
+
+Winston can install handlers for `uncaughtException` and `unhandledRejection`.
+This template deliberately does **not** use them: pointed at a file, they
+replace Node's default behaviour, and a throw during module load then produces
+no stdout at all. Combined with `exitOnError: false` the process even exits `0`,
+which Kubernetes reads as a successful run.
+
+Without them, a boot failure behaves the way an operator expects — stack trace
+on stderr, non-zero exit. Failures after startup are handled in `src/server.ts`,
+which logs through this logger (so they reach the console _and_ `error.log`) and
+then shuts down gracefully with exit code 1.
 
 Rotation is configured so a long-running server cannot fill the disk:
 

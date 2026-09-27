@@ -68,6 +68,18 @@ const fileFormat = winston.format.combine(
 const rotation = { maxsize: 10 * 1024 * 1024, maxFiles: 5, tailable: true };
 
 /**
+ * PM2 cluster mode runs one process per core, and rotation renames files.
+ * Workers sharing a single error.log would rename each other's files out from
+ * under themselves and lose lines, so each worker gets its own set.
+ *
+ * PM2 sets NODE_APP_INSTANCE; outside PM2 there is a single process and no
+ * suffix. In containers, prefer stdout only and let the platform handle
+ * retention - see docs/08-logging.md.
+ */
+const instance = process.env.NODE_APP_INSTANCE;
+const logFile = (name: string) => path.join(LOG_DIR, instance ? `${name}-${instance}.log` : `${name}.log`);
+
+/**
  * NOTE: no `exceptionHandlers`, `rejectionHandlers` or `exitOnError` here, on
  * purpose.
  *
@@ -86,8 +98,8 @@ const logger = winston.createLogger({
     level: isDevelopment ? 'debug' : 'info',
     format: fileFormat,
     transports: [
-        new winston.transports.File({ filename: path.join(LOG_DIR, 'error.log'), level: 'error', ...rotation }),
-        new winston.transports.File({ filename: path.join(LOG_DIR, 'info.log'), level: 'info', ...rotation }),
+        new winston.transports.File({ filename: logFile('error'), level: 'error', ...rotation }),
+        new winston.transports.File({ filename: logFile('info'), level: 'info', ...rotation }),
     ],
 });
 

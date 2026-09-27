@@ -37,8 +37,10 @@ cannot resolve.
 
 ### Server starts, then exits immediately
 
-Check `logs/exceptions.log` and `logs/rejections.log`. Something threw during
-startup — commonly a missing dependency the app now awaits before listening.
+The stack trace goes to **stderr** — check the terminal or `docker compose
+logs`, not a file. Something threw during startup, commonly a missing
+dependency the app now awaits before listening, or an invalid environment
+variable (the message names it).
 
 ---
 
@@ -306,7 +308,7 @@ every conflicting rule. If you added a plugin after it, move it before.
 ## Still stuck
 
 1. `logs/error.log` — with the `errorId` from the client response
-2. `logs/exceptions.log`, `logs/rejections.log` — crashes
+2. stderr / `docker compose logs` — boot failures and crashes
 3. Search by `requestId` to see everything about one request
 4. `NODE_ENV=development` locally to get stack traces in the response
 5. [Open an issue](https://github.com/suman7802/ExpressTemplate/issues/new/choose)
