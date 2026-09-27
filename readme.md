@@ -1,126 +1,145 @@
-# Express template
+# Express Template
 
-## **Getting started**
+A production-shaped Express + TypeScript starting point: request correlation,
+structured logging, validated configuration, i18n, rate limiting, Prometheus
+metrics, a uniform error contract, Docker and PM2 — wired together and working.
 
-To get started with this project, follow the steps below:
+> 📚 **[Full documentation → `docs/`](docs/README.md)** — architecture, security,
+> performance, deployment and a guide to extending the template.
+> Using an AI assistant? Point it at [`CLAUDE.md`](CLAUDE.md).
 
-**Prerequisites**
+## Getting started
 
-- Ensure you have Node.js installed. You can download it from [Node.js official website](https://nodejs.org/).
-- Install Git from [Git official website](https://git-scm.com/).
-- Typescript installed globally. You can install it by running `npm install -g typescript`.
+**Prerequisites** — [Node.js](https://nodejs.org/) ≥ 18.18 and
+[Git](https://git-scm.com/). TypeScript is a project dependency; you do not need
+it globally. The project uses **npm** — `package-lock.json` is committed and CI
+installs with `npm ci`.
 
-**Steps**
+```bash
+git clone git@github.com:suman7802/ExpressTemplate.git
+cd ExpressTemplate
+npm install
 
-1. **Clone the repository**
+npm run setup                  # creates .env.local with a generated API_KEY
+npm run dev
+```
 
-    ```bash
-    git clone git@github.com:suman7802/ExpressTemplate.git
-    ```
+Open http://localhost:8080 — you should get the welcome envelope, and
+**<http://localhost:8080/docs>** for the interactive API reference.
 
-2. **Navigate to the project directory**
+The server **validates its configuration at boot and refuses to start if
+anything is missing**, and tells you exactly what. That is a feature; see
+[docs/04-configuration.md](docs/04-configuration.md).
 
-    ```bash
-    cd ExpressTemplate
-    ```
+For production: `npm run build` then `npm start`.
 
-3. **Install dependencies**
+Detailed walkthrough: [docs/01-getting-started.md](docs/01-getting-started.md)
 
-    ```bash
-    npm install
-    ```
+## Scripts
 
-4. **Create .env.local file**
+| Command             | Purpose                                                         |
+| ------------------- | --------------------------------------------------------------- |
+| `npm run setup`     | Create `.env.local` with a generated `API_KEY`                  |
+| `npm run dev`       | Watch mode with hot restart (`dev:debug` for the inspector)     |
+| `npm run build`     | `tsc` + rewrite `@/` path aliases (`rebuild` for a clean build) |
+| `npm start`         | Run the compiled build in production mode                       |
+| `npm run check`     | typecheck + lint + format:check — what CI runs                  |
+| `npm run fix`       | ESLint `--fix` + Prettier                                       |
+| `npm run pm2:prod`  | Build, then start under PM2 cluster mode                        |
+| `npm run docker:up` | Start the API + Prometheus + Grafana stack                      |
 
-    Create a `.env.local` file in the root of the project and add the environment variables, using env.example file.
+Full list: [docs/01-getting-started.md](docs/01-getting-started.md#the-scripts)
 
-5. **Run the development server**
-
-    ```bash
-    npm run dev
-    ```
-
-6. **Open the project in your browser**
-
-    Open your browser and go to `http://localhost:8080` to see the project running.
-
-By following these steps, you will have the project up and running on your local machine.
-
-For createing build files run `npm run build` and for running build files run `npm start`.
-
-# **Documentation**
+## Documentation
 
 > [Postman Collection](https://documenter.getpostman.com/view/27265804/2sAYkBsM99)
 
-# **Docker compose**
+The `docs/` folder explains how the server works and **why** it is built this
+way — aimed at engineers who want more than a list of npm packages:
 
-### The project is equipped with a docker-compose file for easy deployment and monitoring with Grafana and Prometheus.
+|                                                   |                                                    |
+| ------------------------------------------------- | -------------------------------------------------- |
+| [Architecture](docs/02-architecture.md)           | The middleware pipeline, layers, request lifecycle |
+| [Project structure](docs/03-project-structure.md) | What every file is for                             |
+| [Configuration](docs/04-configuration.md)         | Env vars, validated and typed at boot              |
+| [Validation](docs/06-validation.md)               | Zod at the edge, types inferred from schemas       |
+| [Error handling](docs/07-error-handling.md)       | One error contract for the whole API               |
+| [Security](docs/09-security.md)                   | Every defence, every gap, a production checklist   |
+| [Performance](docs/10-performance.md)             | The event loop, clustering, measuring              |
+| [Observability](docs/11-observability.md)         | Metrics, health checks, Grafana                    |
+| [Deployment](docs/15-deployment.md)               | Docker, PM2, reverse proxies, zero-downtime        |
+| [Extending](docs/17-extending.md)                 | Adding features, a database, auth, tests           |
+| [Troubleshooting](docs/18-troubleshooting.md)     | Symptoms → causes → fixes                          |
 
-> To run the project using Docker, follow these steps:
+## Docker compose
+
+Runs the API alongside Prometheus and Grafana:
 
 ```bash
-docker-compose up
+npm run setup -- .env.production   # generates an API_KEY; review the rest
+npm run docker:up
 ```
 
-# **Features**
+| Service    | URL                                   |
+| ---------- | ------------------------------------- |
+| API        | http://localhost:8080                 |
+| Prometheus | http://localhost:9090                 |
+| Grafana    | http://localhost:3001 (admin / admin) |
 
-- Custom error class
-- Custom error handler
-- Logging
-- Localization
-- Rate limiting
-- Slow down
-- Multer
-- API key emplemantation
-- Sending Emails (sendgrid)
-- local email templates (handlebars)
-- Metrics (Analytics)
-- Prometheus (containerized)
-- Grafana (containerized)
-- Conterization
+## Features
 
-# Features to be added
+**Request handling** — versioned routing · zod validation with inferred types ·
+uniform success and error envelopes · async error propagation · request ids
+echoed as `X-Request-Id`
 
-- Testing
-- Authentication (passport.js)
-- Authorization
-- Grafana Loki
+**API reference** — interactive `/docs` page with a try-it console, generated
+from the same zod schemas that validate requests · OpenAPI 3.0 spec at
+`/docs/openapi.json` · one env flag, one folder, trivially removable
+
+**Security** — helmet · CORS allow-list · rate limiting · progressive throttling ·
+constant-time API key checks · body size limits · upload type/size/count limits ·
+proxy-aware client IPs · no stack traces in production
+
+**Observability** — Winston (JSON, levelled, rotated) · Morgan piped into Winston ·
+Prometheus histograms and counters with bounded labels · health endpoint ·
+containerised Grafana
+
+**Operations** — boot-time config validation · graceful shutdown with a forced
+timeout · PM2 cluster mode · multi-stage non-root Docker image · GitHub Actions CI
+
+**Content** — i18n (English + Nepali, typed keys) · SendGrid email with local
+Handlebars templates
+
+## Roadmap
+
+- Automated tests (Vitest + supertest — see [docs/17](docs/17-extending.md#adding-tests))
+- Authentication and authorization
+- Database layer
+- Grafana Loki for logs
+- Redis-backed rate limiting for multi-process deployments
 
 ## Contributing
 
-Contributors are welcome! If you'd like to enhance the project further or add new features, please follow these steps:
+Contributors are welcome.
 
-1. Fork the repository.
-2. Clone your forked repository:
-    ```bash
-     git clone git@github.com:suman7802/ExpressTemplate.git
-    ```
-3. Create a new branch:
-    ```bash
-    git checkout -b feature/new-feature
-    ```
-4. Make your changes and commit them:
-    ```bash
-    git commit -m "Add new feature"
-    ```
-5. Push your changes:
-    ```bash
-    git push origin feature/new-feature
-    ```
-6. Open a Pull Request on GitHub.
+1. Fork the repository
+2. `git checkout -b feature/new-feature`
+3. Make your changes — `npm run typecheck && npm run lint` must pass
+4. `git commit -m "feat: add new feature"`
+5. `git push origin feature/new-feature`
+6. Open a Pull Request
 
-- If you encounter a bug or want to see something added/changed, please go ahead and [Open an issue](https://github.com/suman7802/ExpressTemplate/issues/new/choose)
+Please read [docs/16-coding-standards.md](docs/16-coding-standards.md) first.
 
-- If you need help with something, feel free to [Start a discussion](https://github.com/suman7802/ExpressTemplate/discussions/new/choose)
+- Found a bug or want a feature? [Open an issue](https://github.com/suman7802/ExpressTemplate/issues/new/choose)
+- Need help? [Start a discussion](https://github.com/suman7802/ExpressTemplate/discussions/new/choose)
 
 ## Contact
 
-For any questions or suggestions, feel free to reach out:
-
 - **Email:** [mansu7802@gmail.com](mailto:mansu7802@gmail.com)
 - **Website:** [suman sharma](https://sumansharma.me)
-- **LinkedIn:** [suman sharma](https://www.linkedin.com/in/suman7802)
+- **LinkedIn:** [suman7802](https://www.linkedin.com/in/suman7802)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Licensed under the MIT License. See [LICENSE](LICENSE).

@@ -1,0 +1,137 @@
+<!--
+  ExpressTemplate - production deployment topology.
+
+  To view or edit:
+    1. Open https://app.diagrams.net/
+    2. Extras -> Edit Diagram...
+    3. Replace the contents with everything from <mxfile> onwards
+-->
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="Deployment topology" id="expresstemplate-deploy">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="ExpressTemplate — Production Topology" style="text;html=1;fontSize=20;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="330" y="16" width="440" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Clients -->
+        <mxCell id="clients" value="Clients&#10;(browser · mobile · server-to-server)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Edge -->
+        <mxCell id="edgezone" value="Edge" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontStyle=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="320" y="70" width="230" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="cdn" value="CDN / WAF&#10;TLS termination&#10;DDoS filtering" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="100" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lb" value="Load balancer / nginx&#10;TRUST_PROXY = number of hops&#10;health check: GET /api/v0/health" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="180" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- App tier -->
+        <mxCell id="apptier" value="Application tier" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;dashed=1;verticalAlign=top;fontStyle=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="70" width="440" height="280" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1" value="Container 1&#10;node:22-alpine · USER node&#10;pm2-runtime · PM2_INSTANCES=1&#10;build/server.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="100" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="Container 2&#10;identical image&#10;scale horizontally" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="100" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="pipeline" value="Middleware pipeline (src/app.ts)&#10;identity → i18n → observability → security → parsing → routes → errors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="620" y="210" width="400" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="statelessnote" value="Stateless: no session or rate-limit state in process memory&#10;(use Redis once more than one process runs)" style="text;html=1;fontSize=10;fontStyle=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="620" y="270" width="400" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Shared state -->
+        <mxCell id="redis" value="Redis&#10;rate-limit store · cache · sessions&#10;(not in this template yet)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="400" width="190" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="Database&#10;PostgreSQL / MongoDB / DynamoDB&#10;(not in this template yet)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="400" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Observability -->
+        <mxCell id="obszone" value="Observability (private network)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#b85450;dashed=1;verticalAlign=top;fontStyle=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="380" width="480" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="prom" value="Prometheus&#10;scrapes GET /metrics every 15s&#10;PROTECT_METRICS=true" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="410" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="grafana" value="Grafana&#10;dashboards · alerts&#10;rate · errors · p95 · loop lag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="410" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="logs" value="Log aggregation (Loki / CloudWatch / ELK)&#10;JSON on stdout · searchable by requestId and errorId" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="500" width="430" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- External -->
+        <mxCell id="sendgrid" value="SendGrid&#10;transactional email&#10;templates rendered locally" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="510" width="190" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="secrets" value="Secrets manager&#10;API_KEY · provider keys&#10;injected as env vars" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="510" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Flows -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;" edge="1" parent="1" source="clients" target="cdn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1l" value="HTTPS" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry x="-0.1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" parent="1" source="cdn" target="lb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" parent="1" source="lb" target="c1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3l" value="X-Forwarded-For" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e3">
+          <mxGeometry x="-0.2" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" parent="1" source="lb" target="c2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;dashed=1;" edge="1" parent="1" source="c1" target="redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;dashed=1;" edge="1" parent="1" source="c2" target="db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" parent="1" source="prom" target="c1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7l" value="scrape /metrics" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e7">
+          <mxGeometry x="-0.1" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" parent="1" source="grafana" target="prom">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" parent="1" source="c1" target="logs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9l" value="stdout (JSON)" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e9">
+          <mxGeometry x="0.2" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" parent="1" source="c2" target="sendgrid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;dashed=1;" edge="1" parent="1" source="secrets" target="c2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="Solid = request path   ·   Dashed = not shipped in this template yet, or injected at deploy time" style="text;html=1;fontSize=11;fontStyle=2;align=left;" vertex="1" parent="1">
+          <mxGeometry x="60" y="610" width="700" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
