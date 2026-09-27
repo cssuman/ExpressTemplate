@@ -136,9 +136,9 @@ Please read [docs/16-coding-standards.md](docs/16-coding-standards.md) first.
 
 ## Contact
 
-- **Email:** [mansu7802@gmail.com](mailto:mansu7802@gmail.com)
-- **Website:** [suman sharma](https://sumansharma.me)
-- **LinkedIn:** [suman7802](https://www.linkedin.com/in/suman7802)
+- **Email:** [cs.sumansrm@gmail.com](mailto:cs.sumansrm@gmail.com)
+- **Website:** [sumansharma.name.com](https://sumansharma.name.com)
+- **LinkedIn:** [cssuman](https://www.linkedin.com/in/cssuman/)
 
 ## License
 
