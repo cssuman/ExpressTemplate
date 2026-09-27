@@ -16,8 +16,13 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Copied before the source so Docker can reuse the cached install layer on any
-# change that does not touch package.json.
+# change that does not touch these files.
+#
+# `scripts/` is copied too because npm runs the `prepare` lifecycle script during
+# install, and this project's prepare lives there. Without it the install fails
+# with "Cannot find module" before a single dependency is linked.
 COPY package*.json ./
+COPY scripts ./scripts
 
 # `npm ci` installs exactly what package-lock.json pins and fails if the lockfile
 # and package.json disagree - which is what makes a build reproducible.
@@ -40,6 +45,9 @@ WORKDIR /app
 RUN npm install --global pm2@latest
 
 COPY package*.json ./
+COPY scripts ./scripts
+
+# prepare runs here too; it detects the missing husky devDependency and skips.
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Compiled JavaScript only - no TypeScript source in the production image.
