@@ -62,7 +62,15 @@ dist/
 # logs directory
 logs/
 
-# ignore lock files
-package-lock.json
-yarn.lock
+# This project uses npm. package-lock.json IS committed - it is what makes a
+# build reproducible and what `npm ci` reads. Only libraries leave it out.
+#
+# Other package managers are a personal choice: their lock files are ignored so
+# using one locally never shows up as a change to the repository.
 pnpm-lock.yaml
+pnpm-workspace.yaml
+yarn.lock
+bun.lockb
+
+# macOS
+.DS_Store

@@ -13,3 +13,12 @@ declare module 'i18next' {
         };
     }
 }
+
+/**
+ * Every key available in the `error` namespace.
+ *
+ * Exported so that code which picks a translation key dynamically (the error
+ * handler, for example) still gets compile-time checking instead of falling
+ * back to `string`.
+ */
+export type ErrorMessageKey = keyof typeof error;

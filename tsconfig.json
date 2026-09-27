@@ -1,18 +1,66 @@
 {
     "compilerOptions": {
         "module": "CommonJS",
-        "target": "ES2019",
+        "moduleResolution": "node",
+
+        /* Node 18+ supports ES2022 natively - no need to down-level modern syntax. */
+        "target": "ES2022",
+        "lib": ["ES2022"],
+
+        /* Path alias: `@/config/env` instead of `../../config/env`.
+           tsc only rewrites types, so `resolve-tspaths` rewrites the emitted JS. */
         "baseUrl": "./src",
-        "paths": {
-            "@/*": ["*"]
-        },
+        "paths": { "@/*": ["*"] },
+
         "rootDir": "./src",
         "outDir": "build",
-        "moduleResolution": "node",
-        "skipLibCheck": true,
+
+        /* ---------------------------------------------------------------
+           Type safety. `strict` is the floor, not the ceiling.
+           Every flag below has caught a real bug in a real codebase.
+           --------------------------------------------------------------- */
         "strict": true,
+
+        /* arr[i] and obj[key] are T | undefined - indexing can always miss. */
+        "noUncheckedIndexedAccess": true,
+
+        /* `{ a: undefined }` is no longer assignable to `{ a?: string }`.
+           "present but undefined" and "absent" are different states. */
+        "exactOptionalPropertyTypes": true,
+
+        /* Every code path in a value-returning function must return. */
+        "noImplicitReturns": true,
+
+        /* Dead locals and parameters are usually a half-finished edit.
+           Parameters prefixed with _ are exempt (Express middleware needs them). */
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+
+        "noImplicitOverride": true,
+        "noFallthroughCasesInSwitch": true,
+        "forceConsistentCasingInFileNames": true,
+
+        /* Each file must be transpilable on its own - required by esbuild,
+           which is what `tsx` uses in development. Catches type-only exports
+           that would vanish at runtime. */
+        "isolatedModules": true,
+
+        /* Stack traces in production point at the .ts line, not compiled output. */
+        "sourceMap": true,
+
+        /* Cache type information between builds; `npm run clean` clears it. */
+        "incremental": true,
+        "tsBuildInfoFile": "./build/.tsbuildinfo",
+
+        /* Types from node_modules are trusted; our own code is not. */
+        "skipLibCheck": true,
+
         "resolveJsonModule": true,
         "esModuleInterop": true
     },
-    "include": ["src"]
+    "include": ["src"],
+    "exclude": ["node_modules", "build", "dist"]
 }

@@ -4,39 +4,70 @@ import middleware from 'i18next-http-middleware';
 
 import logger from '@/logger/winston.logger';
 
-i18next
-    .use(Backend) // Load translations from file system
-    .use(middleware.LanguageDetector) // Detect language from request
+/**
+ * Internationalisation.
+ *
+ * Every user-facing string in this application comes from `locales/`, reached
+ * through `req.t`. Nothing hard-codes English. That is what lets the same error
+ * be returned in Nepali to one client and English to another - and it keeps
+ * copy changes out of the source code.
+ *
+ * Namespaces split the catalogue by concern (`translation`, `auth`, `error`) so
+ * a file stays readable as the application grows:
+ *
+ *   req.t('welcome')                              -> translation namespace
+ *   req.t('route_not_found_message', { ns: 'error' })
+ *
+ * @see docs/12-internationalization.md
+ */
+export const i18nReady = i18next
+    .use(Backend) // Reads JSON from disk
+    .use(middleware.LanguageDetector) // Picks a language per request
     .init({
-        fallbackLng: 'en', // Default language if no match found
-        preload: ['en', 'ne'], // Load these languages on startup
-        ns: ['translation', 'auth', 'error'], // list of Namespace (useful for modular translations)
-        defaultNS: 'translation', // Default namespace
+        fallbackLng: 'en', // Used when nothing matches
+        preload: ['en', 'ne'], // Loaded at startup, not on first request
+        ns: ['translation', 'auth', 'error'],
+        defaultNS: 'translation',
+
         backend: {
-            loadPath: './locales/{{lng}}/{{ns}}.json', // Translation files path
+            // Resolved from the working directory, so `locales/` stays outside
+            // `src/` and survives the TypeScript build untouched.
+            loadPath: './locales/{{lng}}/{{ns}}.json',
         },
+
         detection: {
-            order: ['querystring', 'header'], // Where to look for language (Priority order)
-            lookupQuerystring: 'lng', // Query parameter name, e.g., ?lng=ne
-            lookupCookie: 'i18next', // Cookie name where the language is stored
-            lookupHeader: 'accept-language', // Header to look for language
+            // First match wins: an explicit ?lng=ne beats the browser's header.
+            order: ['querystring', 'header'],
+            lookupQuerystring: 'lng',
+            lookupHeader: 'accept-language',
         },
+
         interpolation: {
-            escapeValue: true, // Escape HTML (XSS protection) (make it false if you need to render HTML)
+            /**
+             * Off because this is a JSON API. HTML-escaping here would turn
+             * `image/png` into `image&#x2F;png` in a JSON field for no benefit -
+             * escaping belongs at the point where a value is rendered into
+             * HTML, which is the client's job. Turn it back on if you ever
+             * render these strings into a server-side template.
+             */
+            escapeValue: false,
+
             format: (value, format) => {
-                if (format === 'uppercase') return value.toUpperCase();
-                if (format === 'lowercase') return value.toLowerCase();
+                if (format === 'uppercase') return String(value).toUpperCase();
+                if (format === 'lowercase') return String(value).toLowerCase();
                 return value;
             },
-            defaultVariables: { appName: 'ExpressTemplate' }, // Global variables
-            skipOnVariables: true, // removes keys if variables are missing.
+
+            defaultVariables: { appName: 'ExpressTemplate' },
+            skipOnVariables: true,
         },
     })
     .then(() => {
         logger.info('i18next initialized');
     })
     .catch((error) => {
-        logger.error('Error initializing i18next:', error);
+        logger.error('Error initializing i18next', { error });
+        throw error;
     });
 
 export default middleware.handle(i18next);
