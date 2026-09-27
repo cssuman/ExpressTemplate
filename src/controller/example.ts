@@ -7,7 +7,7 @@ import { ApiError } from '@/error/ApiError';
 import asyncCatch from '@/error/asyncCatch';
 import { DELAY_AFTER_REQUEST_COUNT, DELAY_AFTER_REQUEST_COUNT_EXCIDED_IN_MS, WINDOW_IN_MILI_SECONDS } from '@/middleware/slow-down';
 import { metricsType, sendEmailType } from '@/schema/example.schema';
-import { RequestWithRateLimit } from '@/types/types.d';
+import type { RequestWithRateLimit } from '@/types/types';
 import { customSuccessResponse } from '@/utils/customSuccessResponse';
 
 export const slowDownExample = asyncCatch(async (req: RequestWithRateLimit, res: Response) => {

@@ -1,13 +1,30 @@
+# Local monitoring stack: the API, Prometheus scraping it, Grafana reading
+# Prometheus. See docs/11-observability.md
 services:
     server:
         build: .
         container_name: main-server
-        command: pm2-runtime ecosystem.config.js --env production
         ports:
             - '8080:8080'
         environment:
             - NODE_ENV=production
-        restart: always
+            # One Node process per container. Let the orchestrator scale by
+            # adding containers - PM2 cluster mode inside a container cannot see
+            # the container's CPU quota and will over-fork.
+            - PM2_INSTANCES=1
+        # The app refuses to start without CLIENT_URL and API_KEY, and says which
+        # are missing in its logs. Marked optional so `docker compose config`
+        # still works on a fresh clone; `npm run docker:up` checks for it first.
+        env_file:
+            - path: .env.production
+              required: false
+        restart: unless-stopped
+        healthcheck:
+            test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8080/api/v0/health']
+            interval: 30s
+            timeout: 3s
+            retries: 3
+            start_period: 15s
 
     prometheus:
         image: prom/prometheus
@@ -15,16 +32,28 @@ services:
         ports:
             - '9090:9090'
         volumes:
-            - ./prometheus.yml:/etc/prometheus/prometheus.yml
-        restart: always
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+            - prometheus-data:/prometheus
+        restart: unless-stopped
+        depends_on:
+            - server
 
     grafana:
         image: grafana/grafana-oss
         container_name: grafana
+        # Mapped to 3001 on the host: 3000 is usually taken by a local frontend.
         ports:
-            - '3000:3000'
+            - '3001:3000'
         environment:
+            # Local development only. Use a secret in any shared environment.
             - GF_SECURITY_ADMIN_PASSWORD=admin
-        restart: always
+        volumes:
+            - grafana-data:/var/lib/grafana
+        restart: unless-stopped
         depends_on:
             - prometheus
+
+# Named volumes keep dashboards and metric history across `docker compose down`.
+volumes:
+    prometheus-data:
+    grafana-data:

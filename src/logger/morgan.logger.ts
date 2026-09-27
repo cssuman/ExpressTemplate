@@ -1,54 +1,37 @@
+import { IncomingMessage } from 'http';
 import morgan from 'morgan';
 
 import { env } from '@/config/env';
 import logger from '@/logger/winston.logger';
 
 /**
- * Custom stream configuration for Morgan.
- * This redirects Morgan's output to our Winston logger's http level
- * instead of the default stdout, allowing for unified logging.
+ * Morgan writes one line per HTTP request. Instead of letting it print to
+ * stdout on its own, we pipe it into Winston's `http` level so that every log
+ * line in the application - request logs included - goes through one pipeline,
+ * one format and one set of transports.
+ *
+ * @see docs/08-logging.md
  */
 const stream = {
-    // Receives the log message from Morgan and passes it to Winston
     write: (message: string) => logger.http(message.trim()),
 };
 
 /**
- * Determines whether Morgan should skip logging certain requests.
- * In this configuration, HTTP logging is only active in development environment.
- *
- * @returns {boolean} true to skip logging, false to log the request
+ * Health checks and metrics scrapes hit the server every few seconds. Logging
+ * them buries real traffic and inflates log storage cost for zero benefit.
  */
-const skip = () => {
-    // Skip HTTP request logging in non-development environments
-    return env.app.NODE_ENV !== 'development';
+const NOISY_ROUTES = ['/metrics', '/api/v0/health'];
+
+const skip = (req: IncomingMessage & { originalUrl?: string }) => {
+    const url = req.originalUrl ?? req.url ?? '';
+    return NOISY_ROUTES.some((route) => url.startsWith(route));
 };
 
 /**
- * Configured Morgan middleware that logs HTTP requests.
- * Format: "IP_ADDRESS HTTP_METHOD URL STATUS_CODE - RESPONSE_TIME ms"
- *
- * Example output: "::1 GET /api/users 200 - 8.234 ms"
- *
- * Morgan is configured to:
- * - Log only in development environment (skipped in production)
- * - Send logs to Winston's http level via the custom stream
+ * The format string comes from LOG_LEVEL (`dev`, `combined`, `tiny`, ...).
+ * Use `combined` in production - it includes referrer and user-agent, which you
+ * will want the first time you investigate an incident.
  */
-const morganMiddleware = morgan(
-    // Log format string:
-    ':remote-addr :method :url :status - :response-time ms',
-    // Options:
-    { stream, skip },
-);
-
-/**
- * Usage in Express application:
- *
- * import express from 'express';
- * import morganMiddleware from './morganMiddleware';
- *
- * const app = express();
- * app.use(morganMiddleware);
- */
+const morganMiddleware = morgan(env.app.LOG_LEVEL as string, { stream, skip });
 
 export default morganMiddleware;

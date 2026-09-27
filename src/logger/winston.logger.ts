@@ -1,10 +1,38 @@
 import dotenvFlow from 'dotenv-flow';
+import fs from 'fs';
+import path from 'path';
 import winston from 'winston';
 
-dotenvFlow.config();
+/**
+ * NOTE: this module deliberately reads `process.env` directly instead of
+ * importing `@/config/env`.
+ *
+ * `@/config/env` imports this logger (to report invalid configuration), so
+ * importing it back here would create a circular dependency. The logger is the
+ * one module allowed to touch process.env.
+ */
+dotenvFlow.config({
+    /**
+     * No .env file is a normal, correct state in production, where variables
+     * are injected by the platform. The library's warning would fire on every
+     * boot - and `src/config/env.ts` reports anything actually missing with a
+     * far more useful message.
+     */
+    silent: true,
+});
+
+const NODE_ENV = process.env.NODE_ENV ?? 'development';
+const isDevelopment = NODE_ENV === 'development';
+
+const LOG_DIR = path.resolve(process.cwd(), 'logs');
+
+/** Winston's File transport does not create missing directories. */
+if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
 
 /**
- * Custom severity levels configuration.
+ * Custom severity levels. Lower number = higher severity.
+ * A transport with `level: 'info'` records info, warn and error - but not http
+ * or debug.
  */
 const levels = {
     error: 0,
@@ -14,10 +42,6 @@ const levels = {
     debug: 4,
 };
 
-/**
- * Assigns colors to each log level for better visualization in console output.
- * These colors will be applied when viewing logs in a terminal that supports ANSI colors.
- */
 winston.addColors({
     error: 'red',
     warn: 'yellow',
@@ -27,39 +51,50 @@ winston.addColors({
 });
 
 /**
- * Custom log formatting configuration for file outputs.
+ * Files are written as JSON so log shippers (Loki, CloudWatch, Datadog) can
+ * index fields instead of regex-parsing a string. `errors({ stack: true })`
+ * keeps stack traces when an Error object is logged.
  */
 const fileFormat = winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.printf((info) => `[${info.timestamp}] ${info.level}: ${info.message}`),
+    winston.format.errors({ stack: true }),
+    winston.format.json(),
 );
 
 /**
- * Configure multiple transport targets for the logger.
- * For files and console.
+ * Size-based rotation keeps disks from filling up on a long-running box.
+ * `tailable: true` keeps the newest entries in error.log / info.log.
  */
-const transports = [
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error', format: fileFormat }),
-    new winston.transports.File({ filename: 'logs/info.log', level: 'info', format: fileFormat }),
-];
+const rotation = { maxsize: 10 * 1024 * 1024, maxFiles: 5, tailable: true };
 
 const logger = winston.createLogger({
     levels,
-    transports,
-    level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+    level: isDevelopment ? 'debug' : 'info',
+    format: fileFormat,
+    transports: [
+        new winston.transports.File({ filename: path.join(LOG_DIR, 'error.log'), level: 'error', ...rotation }),
+        new winston.transports.File({ filename: path.join(LOG_DIR, 'info.log'), level: 'info', ...rotation }),
+    ],
+    exceptionHandlers: [new winston.transports.File({ filename: path.join(LOG_DIR, 'exceptions.log'), ...rotation })],
+    rejectionHandlers: [new winston.transports.File({ filename: path.join(LOG_DIR, 'rejections.log'), ...rotation })],
+    exitOnError: false,
 });
 
-// Add console transport with proper formatting for development environment
-if (process.env.NODE_ENV === 'development') {
-    logger.add(
-        new winston.transports.Console({
-            format: winston.format.combine(
-                winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-                winston.format.colorize({ all: false, message: true, level: true }),
-                winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`),
-            ),
-        }),
-    );
-}
+/**
+ * Human-readable, coloured output for local development only. In production the
+ * process manager captures stdout, so structured JSON is added there instead.
+ */
+logger.add(
+    new winston.transports.Console({
+        format: isDevelopment
+            ? winston.format.combine(
+                  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+                  winston.format.errors({ stack: true }),
+                  winston.format.colorize({ all: false, message: true, level: true }),
+                  winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`),
+              )
+            : fileFormat,
+    }),
+);
 
 export default logger;

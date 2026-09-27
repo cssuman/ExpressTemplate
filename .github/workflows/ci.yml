@@ -1,0 +1,56 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+# A new push to the same branch cancels the previous run instead of queueing.
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    verify:
+        name: Lint, typecheck and build
+        runs-on: ubuntu-latest
+
+        strategy:
+            fail-fast: false
+            matrix:
+                # Lowest supported version and current LTS: catches both
+                # "uses an API that is too new" and "broken on the version we deploy".
+                node-version: [18.x, 22.x]
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: npm
+
+            # `npm ci` installs exactly what the lockfile pins, and fails loudly if
+            # package.json and package-lock.json have drifted apart.
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Typecheck
+              run: npm run typecheck
+
+            - name: Build
+              run: npm run build
+
+    docker:
+        name: Docker image builds
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build image
+              run: docker build -f dockerfile -t express-template:ci .

@@ -1,7 +1,18 @@
 global:
+    # How often Prometheus pulls /metrics. 15s is the usual production value;
+    # 5s gives a sharper picture locally at the cost of more storage.
     scrape_interval: 5s
 
 scrape_configs:
-    - job_name: 'prometheus'
+    - job_name: 'express-template'
+      metrics_path: /metrics
       static_configs:
+          # `server` is the service name from docker-compose.yml, resolved by
+          # Docker's internal DNS. Use host.docker.internal to scrape an app
+          # running on the host instead.
           - targets: ['server:8080']
+
+      # Uncomment when PROTECT_METRICS=true (requires Prometheus 2.48+).
+      # http_headers:
+      #     x-api-key:
+      #         values: ['your_api_key']

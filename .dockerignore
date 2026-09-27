@@ -1,5 +1,20 @@
+# Never ship secrets into an image layer - they survive even if a later layer
+# deletes them, and anyone who can pull the image can read them.
+.env
+.env.*
+!.env.example
+
 node_modules
 build
 dist
+coverage
+logs
 *.log
+
 .git
+.github
+.husky
+.vscode
+docs
+*.md
+!readme.md

@@ -1,6 +1,6 @@
 import { networkInterfaces } from 'os';
 
-export const getLocalIp = () => {
+export const getLocalIp = (): string | undefined => {
     const nets = networkInterfaces();
     let localIp;
 

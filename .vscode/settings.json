@@ -1,0 +1,23 @@
+{
+    // Use the TypeScript that ships with this project, not the editor's bundled
+    // copy. A version mismatch produces phantom errors that the CLI never sees -
+    // most often "Cannot find module" on a package that is plainly installed.
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+
+    // Keep imports in the order simple-import-sort enforces.
+    "editor.organizeImportsOnSave": false,
+
+    "files.eol": "\n",
+    "search.exclude": {
+        "build/**": true,
+        "logs/**": true,
+        "package-lock.json": true
+    }
+}

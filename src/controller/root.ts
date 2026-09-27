@@ -21,7 +21,7 @@ export const root = asyncCatch(async (req: Request, res: Response) => {
      */
     if (!appName || !appVersion || !appEnverionment) {
         throw new ApiError(
-            STATUS_CODES.INVALID_JSON_CONFIG,
+            STATUS_CODES.GENERAL_ERROR,
             ERROR_CODES.INVALID_JSON_CONFIG,
             t('invalid_package_message', { ns: 'error' }),
             t('invalid_package_details', { ns: 'error' }),

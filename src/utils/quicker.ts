@@ -2,8 +2,20 @@ import os from 'os';
 
 import { env } from '@/config/env';
 
+export interface SystemHealth {
+    cpuUsage: number[];
+    totalMemory: string;
+    freeMemory: string;
+}
+
+export interface ApplicationHealth {
+    environment: string;
+    uptime: string;
+    memoryUsage: { heapTotal: string; heapUsed: string };
+}
+
 export default {
-    getSystemHealth: () => {
+    getSystemHealth: (): SystemHealth => {
         return {
             cpuUsage: os.loadavg(),
             totalMemory: `${(os.totalmem() / 1024 / 1024).toFixed(2)} MB`,
@@ -11,7 +23,7 @@ export default {
         };
     },
 
-    getApplicationHealth: () => {
+    getApplicationHealth: (): ApplicationHealth => {
         return {
             environment: env.app.NODE_ENV,
             uptime: `${process.uptime().toFixed(2)} Second`,
