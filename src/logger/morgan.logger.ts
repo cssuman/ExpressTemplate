@@ -23,8 +23,10 @@ const stream = {
 const NOISY_ROUTES = ['/metrics', '/api/v0/health'];
 
 const skip = (req: IncomingMessage & { originalUrl?: string }) => {
-    const url = req.originalUrl ?? req.url ?? '';
-    return NOISY_ROUTES.some((route) => url.startsWith(route));
+    // Exact match: a prefix match would also silence /metricsXYZ, hiding
+    // exactly the traffic an abuser would send.
+    const [path] = (req.originalUrl ?? req.url ?? '').split('?');
+    return NOISY_ROUTES.includes(path ?? '');
 };
 
 /**

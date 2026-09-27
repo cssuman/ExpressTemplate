@@ -67,6 +67,20 @@ const fileFormat = winston.format.combine(
  */
 const rotation = { maxsize: 10 * 1024 * 1024, maxFiles: 5, tailable: true };
 
+/**
+ * NOTE: no `exceptionHandlers`, `rejectionHandlers` or `exitOnError` here, on
+ * purpose.
+ *
+ * Winston's exception handlers replace Node's default behaviour. Pointed at a
+ * file, with `exitOnError: false`, a throw during module load - before
+ * server.ts can install its own handlers - printed NOTHING to stdout and exited
+ * 0. Kubernetes reads that as a successful run, and in a container the log file
+ * dies with it, so the operator gets no signal at all.
+ *
+ * Leaving them off restores the correct default: the stack goes to stderr and
+ * the process exits non-zero. Failures after startup are handled by
+ * server.ts, which logs through this logger and then shuts down gracefully.
+ */
 const logger = winston.createLogger({
     levels,
     level: isDevelopment ? 'debug' : 'info',
@@ -75,9 +89,6 @@ const logger = winston.createLogger({
         new winston.transports.File({ filename: path.join(LOG_DIR, 'error.log'), level: 'error', ...rotation }),
         new winston.transports.File({ filename: path.join(LOG_DIR, 'info.log'), level: 'info', ...rotation }),
     ],
-    exceptionHandlers: [new winston.transports.File({ filename: path.join(LOG_DIR, 'exceptions.log'), ...rotation })],
-    rejectionHandlers: [new winston.transports.File({ filename: path.join(LOG_DIR, 'rejections.log'), ...rotation })],
-    exitOnError: false,
 });
 
 /**

@@ -52,9 +52,43 @@ const originList = z
  *
  * @see docs/09-security.md#trust-proxy
  */
+/**
+ * Values Express accepts for `trust proxy`, other than a boolean or a hop count.
+ * @see https://expressjs.com/en/guide/behind-proxies.html
+ */
+const TRUST_PROXY_KEYWORDS = ['loopback', 'linklocal', 'uniquelocal'];
+
+/** Bare IPv4/IPv6 address or CIDR range, which proxy-addr also accepts. */
+const IP_OR_CIDR = /^[0-9a-fA-F.:]+(\/\d{1,3})?$/;
+
 const trustProxy = z
     .string()
     .optional()
+    .superRefine((raw, ctx) => {
+        const value = raw?.trim().toLowerCase();
+
+        if (!value || value === 'false' || value === 'true' || /^\d+$/.test(value)) return;
+
+        /**
+         * Without this check an unrecognised value reaches
+         * `app.set('trust proxy', ...)`, where proxy-addr throws
+         * "invalid IP address" during boot. Catching it here means a typo is
+         * reported alongside every other configuration problem instead of
+         * killing the process later.
+         *
+         * `TRUST_PROXY=yes` is the likely typo: every other flag in this file
+         * accepts `yes`.
+         */
+        const entries = value.split(',').map((entry) => entry.trim());
+        const invalid = entries.filter((entry) => !TRUST_PROXY_KEYWORDS.includes(entry) && !IP_OR_CIDR.test(entry));
+
+        if (invalid.length === 0) return;
+
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `TRUST_PROXY must be false, true, a hop count, or a list of addresses/keywords (${TRUST_PROXY_KEYWORDS.join(', ')}). Got: ${invalid.join(', ')}`,
+        });
+    })
     .transform((raw): boolean | number | string => {
         const value = raw?.trim();
 

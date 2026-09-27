@@ -64,25 +64,27 @@ const startServer = async () => {
      * hung request keeps the process alive until the orchestrator SIGKILLs it,
      * and every other in-flight request dies with it.
      */
-    const onShutdown = (signal: string) => () => {
-        if (isShuttingDown) return;
-        isShuttingDown = true;
+    const onShutdown =
+        (signal: string, exitCode = 0) =>
+        () => {
+            if (isShuttingDown) return;
+            isShuttingDown = true;
 
-        logger.info(`${signal} received, shutting down gracefully`);
+            logger.info(`${signal} received, shutting down gracefully`);
 
-        const forceExit = setTimeout(() => {
-            logger.error('Could not close connections in time, forcing shutdown');
-            process.exit(1);
-        }, SHUTDOWN_TIMEOUT_MS);
+            const forceExit = setTimeout(() => {
+                logger.error('Could not close connections in time, forcing shutdown');
+                process.exit(1);
+            }, SHUTDOWN_TIMEOUT_MS);
 
-        // Do not keep the event loop alive just for this timer.
-        forceExit.unref();
+            // Do not keep the event loop alive just for this timer.
+            forceExit.unref();
 
-        server.close(() => {
-            logger.info('Server is shut down');
-            process.exit(0);
-        });
-    };
+            server.close(() => {
+                logger.info('Server is shut down');
+                process.exit(exitCode);
+            });
+        };
 
     process.on('SIGINT', onShutdown('SIGINT'));
     process.on('SIGTERM', onShutdown('SIGTERM'));
@@ -92,14 +94,19 @@ const startServer = async () => {
      * the process in an unknown state. Log it, then let the process manager
      * restart a clean one - that is what PM2, Docker and Kubernetes are for.
      */
+    /**
+     * Exit code 1, not 0: a crash must not look like a clean stop, or
+     * `restartPolicy: OnFailure` never restarts the pod and exit-code alerting
+     * sees nothing wrong.
+     */
     process.on('unhandledRejection', (reason: unknown) => {
         logger.error('Unhandled promise rejection', { reason });
-        onShutdown('unhandledRejection')();
+        onShutdown('unhandledRejection', 1)();
     });
 
     process.on('uncaughtException', (error: Error) => {
         logger.error('Uncaught exception', { message: error.message, stack: error.stack });
-        onShutdown('uncaughtException')();
+        onShutdown('uncaughtException', 1)();
     });
 };
 

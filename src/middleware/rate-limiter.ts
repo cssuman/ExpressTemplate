@@ -23,7 +23,14 @@ import { ApiError } from '@/error/ApiError';
 export const WINDOW_IN_MILI_SECONDS = 15 * 60 * 1000;
 export const MAX_REQUESTS_PER_WINDOW = 100;
 
-/** Monitoring endpoints are polled constantly and must never be throttled. */
+/**
+ * Monitoring endpoints are polled constantly and must never be throttled.
+ *
+ * Matched EXACTLY. A prefix match here would exempt `/metricsXYZ` and
+ * `/api/v0/healthzzz` too, handing any client an unlimited, unauthenticated
+ * request channel - each one still running i18n, minting a UUID and writing a
+ * log line.
+ */
 const EXEMPT_ROUTES = ['/metrics', '/api/v0/health'];
 
 export const rateLimiter = rateLimit({
@@ -35,7 +42,7 @@ export const rateLimiter = rateLimit({
     legacyHeaders: false,
 
     skip: (req) => {
-        if (EXEMPT_ROUTES.some((route) => req.path.startsWith(route))) return true;
+        if (EXEMPT_ROUTES.includes(req.path)) return true;
 
         return env.app.DISABLE_RATE_LIMITER;
     },
