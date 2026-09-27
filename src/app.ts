@@ -44,7 +44,22 @@ app.disable('x-powered-by');
  * Runs first so that everything downstream - logs, metrics, errors - can refer
  * to the same request id, client IP and user agent.
  */
-app.use(ruid({ setHeader: true })); // req.rid + X-Request-Id response header
+/**
+ * express-ruid reuses an inbound `request-id` header when present, which lets a
+ * client pick the id that ends up in the logs and in every error body - two
+ * requests can share an id, and the value is attacker-controlled text flowing
+ * into log records.
+ *
+ * Dropping the inbound header first makes every id server-generated. If you
+ * terminate at a trusted proxy that already assigns request ids, remove this
+ * and let the upstream value through deliberately.
+ */
+app.use((req, _res, next) => {
+    delete req.headers['request-id'];
+    next();
+});
+
+app.use(ruid({ setHeader: true })); // req.rid + Request-Id response header
 app.use(requestIp.mw()); // req.clientIp, honouring forwarded headers
 app.use(useragent.express()); // req.useragent
 

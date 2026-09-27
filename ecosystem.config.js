@@ -28,13 +28,18 @@ module.exports = {
             // Give in-flight requests time to finish (matches SHUTDOWN_TIMEOUT_MS).
             kill_timeout: 10000,
 
+            /**
+             * PORT is deliberately absent. PM2 merges these blocks OVER
+             * process.env, so setting it here would silently override the
+             * PORT from .env or the container environment - the app would bind
+             * 8080 while the Docker healthcheck probed the configured port, and
+             * the container would never become healthy.
+             */
             env: {
                 NODE_ENV: 'development',
-                PORT: 8080,
             },
             env_production: {
                 NODE_ENV: 'production',
-                PORT: 8080,
             },
         },
     ],

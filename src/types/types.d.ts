@@ -23,7 +23,7 @@ export interface RequestWithRateLimit extends Request {
  */
 declare module 'express' {
     export interface Request {
-        /** Correlation id set by express-ruid; also returned as X-Request-Id. */
+        /** Correlation id set by express-ruid; also returned as Request-Id. */
         rid?: string;
         /** Set by the verifyApiKey middleware once a key has been accepted. */
         apiKey?: string;

@@ -44,7 +44,7 @@ without inventing copy the backend already knows.
 
 - **`errorId`** — unique to this failure, returned to the client **and** written
   to the logs. A user's screenshot becomes `grep 92f87c41 logs/error.log`.
-- **`requestId`** — from `express-ruid`, also returned as the `X-Request-Id`
+- **`requestId`** — from `express-ruid`, also returned as the `Request-Id`
   header, and present on every log line for that request. It ties the failure to
   everything that happened before it.
 

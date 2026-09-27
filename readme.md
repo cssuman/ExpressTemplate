@@ -90,7 +90,7 @@ npm run docker:up
 
 **Request handling** — versioned routing · zod validation with inferred types ·
 uniform success and error envelopes · async error propagation · request ids
-echoed as `X-Request-Id`
+echoed as `Request-Id`
 
 **API reference** — interactive `/docs` page with a try-it console, generated
 from the same zod schemas that validate requests · OpenAPI 3.0 spec at

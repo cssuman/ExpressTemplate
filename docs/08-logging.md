@@ -85,7 +85,7 @@ logger.error(error.message, {
 
 ## Correlation
 
-`express-ruid` assigns every request an id, returns it as `X-Request-Id`, and
+`express-ruid` assigns every request an id, returns it as `Request-Id`, and
 makes it available as `req.rid`. Include it whenever you log inside a request:
 
 ```ts

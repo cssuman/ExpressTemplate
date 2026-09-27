@@ -30,7 +30,7 @@ flowchart TD
     Client([Client]) --> Proxy[trust proxy<br/>resolve real client IP]
 
     subgraph ID["1 · Identity"]
-        Proxy --> Ruid[express-ruid<br/>req.rid + X-Request-Id]
+        Proxy --> Ruid[express-ruid<br/>req.rid + Request-Id]
         Ruid --> IP[request-ip<br/>req.clientIp]
         IP --> UA[express-useragent<br/>req.useragent]
     end
@@ -216,7 +216,7 @@ screenshot from a user into a single `grep`. See
 
 By the time a controller runs, these are always true:
 
-- `req.rid` — unique id, echoed to the client as `X-Request-Id`
+- `req.rid` — unique id, echoed to the client as `Request-Id`
 - `req.clientIp` — the real client IP, provided `TRUST_PROXY` is set correctly
 - `req.t(key, { ns })` — translation function for this request's language
 - `req.body` / `req.query` / `req.params` — parsed, and **validated + coerced**

@@ -27,7 +27,7 @@ export const errorEnvelope = z
         statusCode: z.number().openapi({ description: 'Mirrors the HTTP status.' }),
         error: z.object({
             errorId: z.string().uuid().openapi({ description: 'Unique per failure. Quote it in a bug report - it is in the server logs too.' }),
-            requestId: z.string().optional().openapi({ description: 'Correlation id, also returned as the X-Request-Id header.' }),
+            requestId: z.string().optional().openapi({ description: 'Correlation id, also returned as the Request-Id header.' }),
             name: z.string().openapi({ example: 'ApiError' }),
             code: z.string().openapi({ description: 'Stable machine-readable code (E0xx). Branch on this, not on the message.' }),
             message: z.string().openapi({ description: 'What went wrong, in the caller language.' }),
