@@ -31,7 +31,7 @@
         "docker:up": "node -e \"require('fs').existsSync('.env.production')||(console.error('\\n.env.production is missing. Create it first:\\n\\n  cp .env.example .env.production\\n'),process.exit(1))\" && docker compose up --build -d",
         "docker:down": "docker compose down",
         "docker:logs": "docker compose logs -f server",
-        "prepare": "husky"
+        "prepare": "node scripts/prepare-husky.mjs"
     },
     "keywords": [
         "express",
